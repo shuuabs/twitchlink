@@ -1,0 +1,446 @@
+<title>TwitchLink コマンド表</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="TwitchLink のチャットコマンドを、押すだけでコピーできる一覧">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=DotGothic16&display=swap">
+<style>
+/* レイアウト: 上に短い説明とさがす欄（スクロールしても上に残る）、その下に分類ごとのボタンの棚。ボタンは押すとコピー */
+:root {
+  --bg: #f3f4f1;
+  --panel: #ffffff;
+  --fg: #1d221f;
+  --muted: #5d665f;
+  --line: #d9ddd6;
+  --accent: #6a4bc4;          /* Twitch を思わせる紫。リンクとフォーカスだけに使う */
+  --harm: #b3402e;            /* 配信者さんを困らせる系 */
+  --harm-bg: #fbe9e5;
+  --help: #1f7a5c;            /* 配信者さんを助ける系 */
+  --help-bg: #e3f3ec;
+  --info: #3d5a80;            /* そのほか */
+  --info-bg: #e6edf6;
+  --toast-bg: #1d221f;
+  --toast-fg: #f3f4f1;
+  --font-display: "DotGothic16", "BIZ UDPGothic", "Yu Gothic", "Meiryo", sans-serif;
+  --font-body: "BIZ UDPGothic", "Yu Gothic UI", "Meiryo", "Hiragino Sans", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141715; --panel: #1c201d; --fg: #e8ebe6; --muted: #9aa39b; --line: #2e342f;
+    --accent: #a993f0;
+    --harm: #ff9a85; --harm-bg: #3a1f1a;
+    --help: #6fd6ad; --help-bg: #15302a;
+    --info: #9ec0ec; --info-bg: #1a2636;
+    --toast-bg: #e8ebe6; --toast-fg: #141715;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141715; --panel: #1c201d; --fg: #e8ebe6; --muted: #9aa39b; --line: #2e342f;
+  --accent: #a993f0;
+  --harm: #ff9a85; --harm-bg: #3a1f1a;
+  --help: #6fd6ad; --help-bg: #15302a;
+  --info: #9ec0ec; --info-bg: #1a2636;
+  --toast-bg: #e8ebe6; --toast-fg: #141715;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+.wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+header { padding-block: 36px 8px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.12em; color: var(--muted); margin: 0; }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(30px, 6vw, 44px);
+  line-height: 1.2;
+  margin: 6px 0 12px;
+  text-wrap: balance;
+}
+.lead { max-width: 62ch; margin: 0; color: var(--fg); }
+
+.info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  padding-block: 20px 4px;
+}
+.info section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.info h2 { font-size: 15px; margin: 0 0 6px; }
+.info ul { margin: 0; padding-left: 1.2em; }
+.info li { margin: 2px 0; }
+.num { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+.bar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding-block: 12px;
+  margin-top: 16px;
+}
+.bar .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.bar label { font-size: 13px; color: var(--muted); }
+.field { display: flex; gap: 8px; align-items: center; flex: 1 1 260px; min-width: 0; }
+input[type="search"], input[type="text"] {
+  font: inherit;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--fg);
+}
+.legend { display: flex; gap: 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.legend span::before {
+  content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 5px; vertical-align: -1px;
+}
+.legend .l-harm::before { background: var(--harm); }
+.legend .l-help::before { background: var(--help); }
+.legend .l-info::before { background: var(--info); }
+
+main { padding-block: 8px 48px; }
+.cat { padding-block: 20px 4px; }
+.cat h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  margin: 0;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.cat h2 small { font-family: var(--font-body); font-size: 13px; color: var(--muted); }
+.cat p.note { margin: 2px 0 10px; font-size: 13px; color: var(--muted); }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+button.cmd {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  border-left-width: 4px;
+  min-width: 0;
+  transition: transform 0.08s ease, border-color 0.15s ease;
+}
+button.cmd:hover { transform: translateY(-1px); }
+button.cmd:active { transform: translateY(1px); }
+.harm { background: var(--harm-bg); border-left-color: var(--harm); color: var(--fg); }
+.help { background: var(--help-bg); border-left-color: var(--help); color: var(--fg); }
+.info-c { background: var(--info-bg); border-left-color: var(--info); color: var(--fg); }
+.harm:hover { border-color: var(--harm); }
+.help:hover { border-color: var(--help); }
+.info-c:hover { border-color: var(--info); }
+.cmd .name { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
+.cmd .cost { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.cmd .desc { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+.cmd .lv { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.empty { color: var(--muted); padding-block: 24px; }
+
+footer { border-top: 1px solid var(--line); padding-block: 20px 32px; font-size: 13px; color: var(--muted); }
+footer p { margin: 4px 0; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 12px);
+  background: var(--toast-bg);
+  color: var(--toast-fg);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  max-width: calc(100% - 32px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 20;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) {
+  button.cmd, .toast { transition: none; }
+  button.cmd:hover, button.cmd:active { transform: none; }
+}
+</style>
+
+<header class="wrap">
+  <p class="eyebrow">MINECRAFT × TWITCH</p>
+  <h1>TwitchLink コマンド表</h1>
+  <p class="lead">ボタンを押すと、そのコマンドがコピーされます。Twitch のチャットに貼って送ると、配信者さんのマイクラ内で発動します。使うには mcp（ポイント）が必要です。</p>
+</header>
+
+<div class="wrap info">
+  <section>
+    <h2>mcp のため方</h2>
+    <ul>
+      <li>配信を見ているだけで <span class="num">5分</span>ごとに <span class="num">10 mcp</span></li>
+      <li>コメントすると <span class="num">5 mcp</span>（1分に1回まで）</li>
+      <li>チャンネルポイント「mcp:100mcp交換」で <span class="num">100 mcp</span>（1回の配信で1回まで）</li>
+    </ul>
+  </section>
+  <section>
+    <h2>サブスクの方はもっとたまります</h2>
+    <ul>
+      <li>Tier1 は <span class="num">1.2倍</span></li>
+      <li>Tier2 は <span class="num">1.4倍</span></li>
+      <li>Tier3 は <span class="num">2倍</span></li>
+    </ul>
+  </section>
+  <section>
+    <h2>配信を応援すると</h2>
+    <ul>
+      <li>サブスクすると、名前の浮かぶ<span class="num">プレゼントのチェスト</span>が配信者さんのそばに届きます</li>
+      <li>Tier が高いほど・ギフトの数が多いほど、中身が豪華になります</li>
+      <li>レイドすると、レイドした人の名前がついたモブたちがやってきます</li>
+      <li>ハイプトレインが始まると、画面にトロッコが走ります</li>
+    </ul>
+  </section>
+  <section>
+    <h2>知っておいてほしいこと</h2>
+    <ul>
+      <li>ポイントと必要なレベルは、基本設定です。</li>
+      <li>いま使えるコマンドは、配信画面の右の一覧に出ています</li>
+      <li>たくさん使われると、少しのあいだ休けい（クールタイム）になります</li>
+    </ul>
+  </section>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="field">
+      <label for="q">さがす</label>
+      <input id="q" type="search" placeholder="例：ゾンビ、回復、画面" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="extra">あとにつける文字</label>
+      <input id="extra" type="text" placeholder="例：がんばって！" autocomplete="off">
+    </div>
+    <div class="legend" aria-label="色の意味">
+      <span class="l-harm">困らせる</span>
+      <span class="l-help">助ける</span>
+      <span class="l-info">そのほか</span>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="list"></main>
+
+<footer class="wrap">
+  <p>配信：<a href="https://www.twitch.tv/witone_ttv" target="_blank" rel="noreferrer">twitch.tv/witone_ttv</a></p>
+  <p>TwitchLink 1.0.36 のはじめの設定で作った一覧です。</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// [コマンド, 説明, はじめの値段(mcp), はじめの必要レベル]。TwitchLink の TwitchEvent.java から写したもの
+const CATEGORIES = [
+  {
+    title: "いたずら", sub: "配信者さんを困らせる", tone: "harm",
+    note: "呼んだモブ（ゾンビ・スケルトン・クリーパー・クモ）は、呼んだ人がコメントすると頭の上でしゃべります。",
+    items: [
+      ["#クリーパー", "クリーパーを送る", 100, 10],
+      ["#クリーパー軍団", "クリーパー軍団（3体）", 250, 15],
+      ["#ゾンビ", "ゾンビ（1体）", 50, 5],
+      ["#ゾンビ軍団", "ゾンビ軍団（3体）", 120, 10],
+      ["#スケルトン", "スケルトン（1体）", 60, 5],
+      ["#スケルトン軍団", "スケルトン軍団（3体）", 150, 10],
+      ["#クモ", "クモ（1体）", 50, 5],
+      ["#クモ軍団", "クモ軍団（3体）", 120, 10],
+      ["#雷", "雷を落とす", 80, 15],
+      ["#逆", "向きが逆になる", 40, 0],
+      ["#シャッフル", "ホットバーをバラバラに", 60, 0],
+      ["#テレポート", "近くにテレポート", 60, 5],
+      ["#押すなよ", "前にふっとばされる（ダメージなし）", 60, 5],
+      ["#テレポーート", "遠くにテレポート", 80, 10],
+      ["#強制帰還", "リスポーン地点にもどされる", 200, 15],
+    ],
+  },
+  {
+    title: "画面", sub: "配信者さんの画面が変わる（20秒）", tone: "harm",
+    items: [
+      ["#ブラー", "ぼやける", 60, 5],
+      ["#歪み", "ゆがむ", 60, 5],
+      ["#グレー", "白黒になる", 40, 0],
+      ["#ペイント", "油絵みたいになる", 40, 10],
+      ["#反転", "色が逆になる", 40, 0],
+      ["#ドット", "ドット絵になる", 40, 0],
+      ["#ズーム", "ズームする", 40, 0],
+    ],
+  },
+  {
+    title: "バフ", sub: "配信者さんを助ける", tone: "help",
+    items: [
+      ["#回復", "ハート全回復", 100, 5],
+      ["#食料", "食べものをチェストで届ける", 50, 0],
+      ["#鉱石2倍", "鉱石2倍（60秒）", 150, 10],
+      ["#夜明け", "夜を朝に", 100, 5],
+      ["#火炎耐性", "火炎耐性（60秒）", 60, 5],
+      ["#水中呼吸", "水中呼吸（60秒）", 60, 5],
+      ["#暗視", "暗視（60秒）", 60, 5],
+      ["#アーマー", "防具をチェストで届ける（ランダム）", 100, 5],
+      ["#武器", "剣をチェストで届ける（ランダム）", 80, 5],
+      ["#ツール", "道具をチェストで届ける（ランダム）", 80, 5],
+      ["#高速", "スピードUP（30秒）", 60, 0],
+      ["#ジャンプ", "ジャンプUP（30秒）", 60, 0],
+      ["#シールド", "防御UP（30秒）", 100, 5],
+      ["#近接バフ", "近接UP（30秒）", 100, 10],
+      ["#遠距離バフ", "遠距離UP（30秒）", 100, 10],
+      ["#ヒル", "攻撃すると回復（30秒）", 100, 10],
+      ["#制止", "止まると回復（30秒）", 80, 5],
+      ["#無力化", "まわりの敵が止まる", 120, 10],
+      ["#炎上", "まわりの敵が燃える", 100, 10],
+      ["#マヌケ", "ふざけた音になる（60秒）", 40, 0],
+    ],
+  },
+  {
+    title: "デバフ", sub: "配信者さんを弱くする", tone: "harm",
+    items: [
+      ["#暗闇", "暗闇（15秒）", 50, 5],
+      ["#減速", "減速（20秒）", 80, 5],
+      ["#難聴", "音が聞こえにくい（15秒）", 60, 10],
+      ["#空腹", "空腹（15秒）", 50, 0],
+      ["#ジャンプ不可", "ジャンプできない（20秒）", 60, 5],
+      ["#無邪気", "ジャンプが止まらない（15秒）", 60, 5],
+      ["#怪我", "最大体力ダウン（60秒）", 100, 10],
+      ["#近接デバフ", "近接ダウン（30秒）", 80, 5],
+      ["#近接なし", "近接できない（20秒）", 120, 10],
+      ["#遠距離デバフ", "遠距離ダウン（30秒）", 80, 5],
+      ["#遠距離なし", "遠距離できない（20秒）", 120, 10],
+      ["#ヒル除け", "攻撃するとダメージ（30秒）", 100, 10],
+      ["#移動続行", "止まるとダメージ（30秒）", 100, 10],
+      ["#クリティカル", "クリティカルだけ当たる（30秒）", 100, 10],
+      ["#劣化", "道具の耐久ダウン", 80, 5],
+      ["#激怒", "まわりが襲ってくる", 150, 15],
+      ["#恐怖", "敵の声が聞こえる（30秒）", 40, 0],
+      ["#混乱", "操作が逆になる（20秒）", 80, 5],
+    ],
+  },
+  {
+    title: "そのほか", sub: "", tone: "info-c",
+    items: [
+      ["#mcp", "自分の mcp の残りを確認", -1, 0],
+    ],
+  },
+];
+
+const list = document.getElementById("list");
+const q = document.getElementById("q");
+const extra = document.getElementById("extra");
+const toast = document.getElementById("toast");
+
+function load(key) { try { return localStorage.getItem(key) || ""; } catch (e) { return ""; } }
+function save(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+extra.value = load("twitchlink-extra");
+
+function render() {
+  const word = q.value.trim().toLowerCase();
+  list.textContent = "";
+  let shown = 0;
+  for (const cat of CATEGORIES) {
+    const items = cat.items.filter(([cmd, desc]) =>
+      !word || cmd.toLowerCase().includes(word) || desc.toLowerCase().includes(word) || cat.title.includes(word));
+    if (!items.length) continue;
+    shown += items.length;
+    const sec = document.createElement("section");
+    sec.className = "cat";
+    const h = document.createElement("h2");
+    h.textContent = cat.title;
+    if (cat.sub) { const s = document.createElement("small"); s.textContent = cat.sub; h.append(s); }
+    sec.append(h);
+    if (cat.note) { const p = document.createElement("p"); p.className = "note"; p.textContent = cat.note; sec.append(p); }
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    for (const [cmd, desc, cost, lv] of items) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cmd " + cat.tone;
+      b.title = "押すとコピー";
+      const n = document.createElement("span"); n.className = "name"; n.textContent = cmd;
+      const c = document.createElement("span"); c.className = "cost"; c.textContent = cost >= 0 ? cost + " mcp" : "無料";
+      const d = document.createElement("span"); d.className = "desc"; d.textContent = desc;
+      b.append(n, c, d);
+      if (lv > 0) d.textContent += "　・Lv" + lv + " から";
+      b.addEventListener("click", () => copy(cmd));
+      grid.append(b);
+    }
+    sec.append(grid);
+    list.append(sec);
+  }
+  if (!shown) {
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "「" + q.value.trim() + "」に合うコマンドはありません。ほかの言葉でさがしてみてください。";
+    list.append(p);
+  }
+}
+
+let timer;
+function showToast(text) {
+  toast.textContent = text;
+  toast.classList.add("show");
+  clearTimeout(timer);
+  timer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function copy(cmd) {
+  const add = extra.value.trim();
+  const text = add ? cmd + " " + add : cmd;
+  const done = () => showToast("「" + text + "」をコピーしました。チャットに貼ってください");
+  const fallback = () => {
+    const t = document.createElement("textarea");
+    t.value = text;
+    t.setAttribute("readonly", "");
+    t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.append(t);
+    t.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    t.remove();
+    if (ok) done();
+    else showToast("コピーできませんでした。「" + text + "」を手で打ってください");
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } else {
+    fallback();
+  }
+}
+
+q.addEventListener("input", render);
+extra.addEventListener("input", () => save("twitchlink-extra", extra.value));
+render();
+</script>
